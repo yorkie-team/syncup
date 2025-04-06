@@ -1,6 +1,6 @@
 # SyncUp
 
-SyncUp is a simple event management application that allows users to create and share events with others.
+"Let's Sync Up" - SyncUp is a simple event management application that allows users to create and share events with others.
 
 ## Features
 
