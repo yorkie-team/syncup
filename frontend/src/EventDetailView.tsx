@@ -1,7 +1,7 @@
 import { useLocation, useParams } from "react-router-dom";
 import { useYorkieDoc } from "@yorkie-js/react";
 import { TimeGrid, TimeSelection } from "./components/time-grid";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "./components/ui/button";
 
 export function EventDetailView() {
@@ -17,15 +17,39 @@ export function EventDetailView() {
     }) ||
     undefined;
 
-  const { root, update, loading, error } = useYorkieDoc<{
-    name: string;
-    selectedDates: number[];
-    startTime: string;
-    endTime: string;
-    availables: Record<string, Array<TimeSelection>>;
-  }>(import.meta.env.VITE_YORKIE_API_KEY, key!, initialData);
+  const { root, update, loading, error } = useYorkieDoc<
+    {
+      name: string;
+      selectedDates: number[];
+      startTime: string;
+      endTime: string;
+      availables: Record<string, Array<TimeSelection>>;
+    },
+    {}
+  >(import.meta.env.VITE_YORKIE_API_KEY, key!, initialData);
 
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    const fetchMe = async () => {
+      const res = await fetch(
+        `${import.meta.env.VITE_BACKEND_API_URL}/auth/me`,
+        {
+          method: "GET",
+          credentials: "include",
+        }
+      );
+      if (res.ok) {
+        const user = await res.json();
+        if (user) {
+          setIsLoggedIn(true);
+        }
+      } else {
+        setIsLoggedIn(false);
+      }
+    };
+    fetchMe();
+  }, []);
 
   const handleTimeUpdate = (times: Array<TimeSelection>) => {
     update((root) => {
@@ -60,7 +84,17 @@ export function EventDetailView() {
                   <h3 className="text-lg font-medium mb-4">
                     Login to set your availability
                   </h3>
-                  <Button onClick={() => setIsLoggedIn(true)}>Login</Button>
+                  <Button
+                    onClick={() => {
+                      const returnTo =
+                        window.location.pathname + window.location.search;
+                      window.location.href = `${
+                        import.meta.env.VITE_BACKEND_API_URL
+                      }/auth/github?state=${encodeURIComponent(returnTo)}`;
+                    }}
+                  >
+                    Login
+                  </Button>
                 </div>
               )}
             </div>
