@@ -7,7 +7,7 @@ import { ThemeProvider } from "./components/theme-provider";
 function App() {
   return (
     <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
-      <BrowserRouter basename="/syncup">
+      <BrowserRouter basename={import.meta.env.VITE_SYNCUP_BASENAME}>
         <div className="max-w-4xl mx-auto">
           <Routes>
             <Route path="/" element={<CreateEventView />} />
