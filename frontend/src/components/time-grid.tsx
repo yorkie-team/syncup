@@ -8,11 +8,18 @@ import {
 } from "@/components/ui/table";
 import { formatDate, formatTo12Hour } from "@/lib/times";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "./ui/tooltip";
 
 interface TimeGridProps {
   dates: Array<Date>;
   startTime: string;
   endTime: string;
+  initialSelections?: Array<TimeSelection>;
   availables?: Record<string, Array<TimeSelection>>;
   onTimeUpdate?: (times: Array<TimeSelection>) => void;
   readonly?: boolean;
@@ -23,7 +30,13 @@ export interface TimeSelection {
   time: string;
 }
 
-function genTimes(startTime: string, endTime: string) {
+/**
+ * `getTimeSlots` generates time slots between the given start and end times.
+ */
+export function genTimeSlots(
+  startTime: string,
+  endTime: string
+): Array<string> {
   const start = parseInt(startTime.split(":")[0]);
   const end = parseInt(endTime.split(":")[0]);
   const slots = (end - start) * 4;
@@ -41,17 +54,19 @@ export const TimeGrid = ({
   dates,
   startTime,
   endTime,
+  initialSelections = [],
   availables,
   onTimeUpdate,
   readonly = false,
 }: TimeGridProps) => {
-  const [currSelections, setCurrSelections] = useState<TimeSelection[]>([]);
+  const [currSelections, setCurrSelections] =
+    useState<TimeSelection[]>(initialSelections);
   const [selections, setSelections] = useState<TimeSelection[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState<TimeSelection | null>(null);
 
-  const times = useMemo(
-    () => genTimes(startTime, endTime),
+  const timeSlots = useMemo(
+    () => genTimeSlots(startTime, endTime),
     [startTime, endTime]
   );
 
@@ -79,12 +94,12 @@ export const TimeGrid = ({
 
       let currentDate = startDate;
       while (currentDate <= endDate) {
-        for (const t of times) {
-          const timeNum = parseInt(t.replace(":", ""));
+        for (const slot of timeSlots) {
+          const timeNum = parseInt(slot.replace(":", ""));
           if (timeNum >= minTime && timeNum <= maxTime) {
             newSelections.push({
               date: currentDate.toISOString(),
-              time: t,
+              time: slot,
             });
           }
         }
@@ -135,7 +150,7 @@ export const TimeGrid = ({
       );
   };
 
-  const getSelectionCount = useMemo(() => {
+  const getAvailableCount = useMemo(() => {
     return (date: Date, time: string) => {
       if (!availables) return 0;
 
@@ -152,12 +167,38 @@ export const TimeGrid = ({
     };
   }, [availables]);
 
-  const getColorClass = useMemo(() => {
-    return (count: number) => {
-      if (count === 0) return "";
-      return `bg-green-${Math.min(900, 500 + (count - 1) * 100)}`;
-    };
-  }, []);
+  const getAvailableParticipants = (date: Date, time: string) => {
+    if (!availables) return [];
+
+    const availableParticipants: string[] = [];
+    Object.entries(availables).forEach(([userId, selections]) => {
+      if (
+        selections.some(
+          (sel) => sel.date === date.toISOString() && sel.time === time
+        )
+      ) {
+        availableParticipants.push(userId);
+      }
+    });
+
+    return availableParticipants;
+  };
+
+  const maxParticipants = useMemo(() => {
+    if (!availables) return 0;
+
+    const participantCounts = new Map<string, number>();
+    Object.values(availables).forEach((selections) => {
+      selections.forEach((selection) => {
+        const key = `${selection.date}_${selection.time}`;
+        participantCounts.set(key, (participantCounts.get(key) || 0) + 1);
+      });
+    });
+
+    return participantCounts.size > 0
+      ? Math.max(...participantCounts.values())
+      : 0;
+  }, [availables]);
 
   const isSelected = (date: Date, time: string) => {
     const isCurrSelected = currSelections.some(
@@ -199,7 +240,7 @@ export const TimeGrid = ({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {times.map((time, idx) => (
+          {timeSlots.map((time, idx) => (
             <TableRow
               key={time}
               className={`w-auto ${idx % 4 === 0 ? "" : ""}`}
@@ -218,12 +259,56 @@ export const TimeGrid = ({
                     idx % 4 === 0 ? "border-t border-gray-100/50" : ""
                   }`}
                 >
-                  {readonly && (
+                  {readonly && getAvailableCount(date, time) > 0 && (
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div
+                            key={`${date.toISOString()}-${time}`}
+                            className="h-2.5 cursor-pointer bg-green-500"
+                            style={{
+                              backgroundColor: `rgb(34 197 94 / ${
+                                getAvailableCount(date, time) / maxParticipants
+                              })`,
+                            }}
+                          />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <div className="space-y-2">
+                            <p className="text-sm font-medium">
+                              {formatDate(date).date} {time}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              {getAvailableCount(date, time)} of{" "}
+                              {maxParticipants} participants (
+                              {Math.round(
+                                (getAvailableCount(date, time) /
+                                  maxParticipants) *
+                                  100
+                              )}
+                              %)
+                            </p>
+                            <div className="text-xs">
+                              <p className="font-medium mb-1">
+                                Available participants:
+                              </p>
+                              <ul className="list-disc pl-4 space-y-0.5">
+                                {getAvailableParticipants(date, time).map(
+                                  (name, idx) => (
+                                    <li key={idx}>{name}</li>
+                                  )
+                                )}
+                              </ul>
+                            </div>
+                          </div>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  )}
+                  {readonly && getAvailableCount(date, time) === 0 && (
                     <div
                       key={`${date.toISOString()}-${time}`}
-                      className={`h-2.5 cursor-pointer ${getColorClass(
-                        getSelectionCount(date, time)
-                      )}`}
+                      className="h-2.5"
                     />
                   )}
                   {!readonly && (

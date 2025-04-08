@@ -1,9 +1,17 @@
 import { Request, Response } from 'express';
+import { Session } from 'express-session';
 import { Controller, Get, Query, Req, Res, UseGuards } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
 import { ConfigService } from '@nestjs/config';
 import { AuthService, User } from './auth.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
+import { GitHubAuthGuard } from './github-auth.guard';
+
+interface RequestWithSession extends Request {
+  session: Session & {
+    returnTo?: string;
+  };
+  user?: User;
+}
 
 @Controller('auth')
 export class AuthController {
@@ -19,15 +27,15 @@ export class AuthController {
   }
 
   @Get('github')
-  @UseGuards(AuthGuard('github'))
-  async githubAuth(@Req() req: Request) {
+  @UseGuards(GitHubAuthGuard)
+  async githubAuth(@Query('returnTo') returnTo: string) {
     // NOTE(hackerwins): Redirect to GitHub for authentication.
   }
 
   @Get('github/callback')
-  @UseGuards(AuthGuard('github'))
+  @UseGuards(GitHubAuthGuard)
   async githubAuthCallback(
-    @Req() req: Request & { user: User },
+    @Req() req: RequestWithSession & { user: User },
     @Res({ passthrough: true }) res: Response,
   ) {
     const { token } = await this.authService.createToken(req.user);
@@ -39,7 +47,9 @@ export class AuthController {
       maxAge: 3600000,
     });
 
-    // TODO(hackerwins): Redirect to the returnTo URL
-    return res.redirect(`${this.configService.get('FRONTEND_URL')!}`);
+    const returnTo = `${this.configService.get('FRONTEND_URL')}${req.session.returnTo}`;
+    delete req.session.returnTo;
+
+    return res.redirect(returnTo!);
   }
 }

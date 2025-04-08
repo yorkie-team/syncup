@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { CreateEventView } from "./CreateEventView";
 import { EventDetailView } from "./EventDetailView";
 import { ThemeProvider } from "./components/theme-provider";
+import { Toaster } from "@/components/ui/sonner";
 
 function App() {
   return (
@@ -13,6 +14,7 @@ function App() {
             <Route path="/" element={<CreateEventView />} />
             <Route path="/:key" element={<EventDetailView />} />
           </Routes>
+          <Toaster />
         </div>
       </BrowserRouter>
     </ThemeProvider>
