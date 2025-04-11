@@ -1,9 +1,22 @@
 # SyncUp
+"Let's Sync Up" – SyncUp is a lightweight event coordination app that helps you plan events and sync available time slots with others.
 
-"Let's Sync Up" - SyncUp is a simple event management application that allows users to create and share events with others.
+## ✨ Features
 
-## Features
+- 🗓️ Instantly create an event by selecting dates and times
+- 🔗 Share the event with a simple link
+- ✅ Let everyone choose their available time slots
+- 👀 See the group’s availability at a glance
 
-- Create events instantly
-- Share events with friends with a link
-- Choose available time slots
+👉 Try it out: https://syncup.yorkie.dev
+
+1. Pick a few dates and times
+2. Share the link
+3. Everyone picks their available slots
+4. See who’s available when!
+
+https://github.com/user-attachments/assets/29d921fc-4514-4b20-917c-f4a03be7796b
+
+
+📆 Give SyncUp a try and let us know what you think!
+🧪 Feedback is super welcome!
