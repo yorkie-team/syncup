@@ -1,8 +1,9 @@
-import { useLocation, useParams } from "react-router-dom";
-import { toast } from "sonner";
-import { useYorkieDoc } from "@yorkie-js/react";
-import { TimeGrid, TimeSelection } from "./components/time-grid";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useLocation, useParams } from "react-router-dom";
+import { useYorkieDoc } from "@yorkie-js/react";
+import { SiGithub } from "@icons-pack/react-simple-icons";
+import { Loader2 } from "lucide-react";
+import { TimeGrid, TimeSelection } from "./components/time-grid";
 import { Button } from "./components/ui/button";
 import { LegendItems } from "./components/legend-items";
 
@@ -12,7 +13,7 @@ type User = {
   email: string;
 };
 
-type Event = {
+export type Event = {
   name: string;
   selectedDates: number[];
   startTime: string;
@@ -20,7 +21,11 @@ type Event = {
   availables: Record<string, Array<TimeSelection>>;
 };
 
-export function EventDetailView() {
+export function EventDetailView({
+  onEventLoad,
+}: {
+  onEventLoad?: (event: Event) => void;
+}) {
   const { key } = useParams();
   const formData = useLocation().state;
   const initialRoot =
@@ -62,6 +67,12 @@ export function EventDetailView() {
     fetchMe();
   }, []);
 
+  useEffect(() => {
+    if (root && !loading && !error) {
+      onEventLoad?.(root);
+    }
+  }, [root, loading, error, onEventLoad]);
+
   const handleTimeUpdate = useCallback(
     (times: Array<TimeSelection>) => {
       if (!user) {
@@ -74,15 +85,6 @@ export function EventDetailView() {
     },
     [user, update]
   );
-
-  const handleShare = async () => {
-    const currentUrl = window.location.href;
-
-    try {
-      await navigator.clipboard.writeText(currentUrl);
-      toast("Link copied to clipboard!");
-    } catch (e) {}
-  };
 
   const maxParticipants = useMemo(() => {
     if (!root?.availables) return 0;
@@ -114,24 +116,24 @@ export function EventDetailView() {
 
   return (
     <div className="space-y-8 w-full max-w-4xl mx-auto p-4">
-      {loading && <p>Loading...</p>}
-      {error && <p>Error: {error.message}</p>}
+      {loading && (
+        <div className="flex flex-col items-center justify-center min-h-[300px]">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="mt-4 text-sm text-muted-foreground">Loading Event...</p>
+        </div>
+      )}
+      {error && (
+        <div className="p-4 border border-destructive/50 rounded-md bg-destructive/10 text-destructive">
+          <p className="text-center">Error: {error.message}</p>
+        </div>
+      )}
       {!loading && !error && !root?.selectedDates && (
-        <p>Error: Event Not Found</p>
+        <div className="p-4 border border-amber-200 rounded-md bg-amber-50 text-amber-800">
+          <p className="text-center">Error: Event Not Found</p>
+        </div>
       )}
       {!loading && !error && root?.selectedDates?.length && (
         <div className="space-y-6">
-          <div>
-            <h2 className="text-2xl font-semibold">{root.name}</h2>
-            <div className="flex justify-end mb-2">
-              <Button
-                onClick={handleShare}
-                className="flex items-center text-gray-600 bg-gray-100 hover:bg-gray-200 cursor-pointer"
-              >
-                Share Link
-              </Button>
-            </div>
-          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="flex flex-col">
               {user ? (
@@ -167,17 +169,21 @@ export function EventDetailView() {
                   <h3 className="text-lg font-medium mb-4 ">
                     Login to set your availability
                   </h3>
-                  <Button
-                    onClick={() => {
-                      const returnTo =
-                        window.location.pathname + window.location.search;
-                      window.location.href = `${
-                        import.meta.env.VITE_BACKEND_API_URL
-                      }/auth/github?returnTo=${encodeURIComponent(returnTo)}`;
-                    }}
-                  >
-                    Login
-                  </Button>
+                  <div className="flex flex-col gap-3 items-center">
+                    <Button
+                      onClick={() => {
+                        const returnTo =
+                          window.location.pathname + window.location.search;
+                        window.location.href = `${
+                          import.meta.env.VITE_BACKEND_API_URL
+                        }/auth/github?returnTo=${encodeURIComponent(returnTo)}`;
+                      }}
+                      className="w-full max-w-xs flex items-center justify-center gap-2 bg-gray-800 hover:bg-gray-700 text-white"
+                    >
+                      <SiGithub className="h-5 w-5" />
+                      <span>Login with GitHub</span>
+                    </Button>
+                  </div>
                 </div>
               )}
             </div>

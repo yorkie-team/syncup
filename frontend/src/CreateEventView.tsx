@@ -105,7 +105,7 @@ export function CreateEventView() {
           />
         </div>
 
-        <div className="flex flex-col md:flex-row gap-8">
+        <div className="flex flex-col md:flex-row gap-6">
           <div className="calendar-container w-full md:w-auto">
             <FormField
               control={form.control}
@@ -118,8 +118,9 @@ export function CreateEventView() {
                       mode="multiple"
                       selected={field.value}
                       onSelect={field.onChange}
-                      className="rounded-md border"
+                      className="rounded-md border shadow-sm"
                       disabled={(date) => date < new Date()}
+                      aria-label="Select available dates"
                     />
                   </FormControl>
                   <FormMessage />
@@ -134,7 +135,11 @@ export function CreateEventView() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Start Time</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select
+                    onValueChange={field.onChange}
+                    value={field.value}
+                    aria-label="Select start time"
+                  >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select start time" />
@@ -158,7 +163,11 @@ export function CreateEventView() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>End Time</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select
+                    onValueChange={field.onChange}
+                    value={field.value}
+                    aria-label="Select end time"
+                  >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select end time" />
@@ -178,8 +187,8 @@ export function CreateEventView() {
             />
           </div>
         </div>
-        <div className="flex justify-center md:justify-start">
-          <Button type="submit">
+        <div className="flex justify-center md:justify-start mt-4">
+          <Button type="submit" disabled={isSubmitting}>
             {isSubmitting ? "Creating..." : "Create Event"}
           </Button>
         </div>
