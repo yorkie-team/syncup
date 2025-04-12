@@ -1,27 +1,15 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { useLocation, useParams } from "react-router-dom";
 import { useYorkieDoc } from "@yorkie-js/react";
 import { SiGithub } from "@icons-pack/react-simple-icons";
 import { Loader2 } from "lucide-react";
-import { TimeGrid, TimeSelection } from "./components/time-grid";
+import { TimeGrid } from "./components/TimeGrid";
 import { Button } from "./components/ui/button";
-import { LegendItems } from "./components/legend-items";
+import { LegendItems } from "./components/LegendItems";
+import { User, Event, TimeSlot } from "./types/types";
+import { useFetchUser } from "./hooks/useFetchUser";
 
-type User = {
-  authProvider: string;
-  username: string;
-  email: string;
-};
-
-export type Event = {
-  name: string;
-  selectedDates: number[];
-  startTime: string;
-  endTime: string;
-  availables: Record<string, Array<TimeSelection>>;
-};
-
-export function EventDetailView({
+export function EventDetailPage({
   onEventLoad,
 }: {
   onEventLoad?: (event: Event) => void;
@@ -43,38 +31,25 @@ export function EventDetailView({
     key!,
     { initialRoot }
   );
-
-  const [user, setUser] = useState<User | null>(null);
-
-  useEffect(() => {
-    const fetchMe = async () => {
-      const res = await fetch(
-        `${import.meta.env.VITE_BACKEND_API_URL}/auth/me`,
-        {
-          method: "GET",
-          credentials: "include",
-        }
-      );
-      if (res.ok) {
-        const user = (await res.json()) as User;
-        if (user) {
-          setUser(user);
-        }
-      } else {
-        setUser(null);
-      }
-    };
-    fetchMe();
-  }, []);
+  const user = useFetchUser();
 
   useEffect(() => {
     if (root && !loading && !error) {
       onEventLoad?.(root);
     }
-  }, [root, loading, error, onEventLoad]);
+  }, [root, loading, error]);
+
+  useEffect(() => {
+    if (!root || !root.name) {
+      document.title = `SyncUp`;
+      return;
+    }
+
+    document.title = `SyncUp - ${root.name}`;
+  }, [root?.name]);
 
   const handleTimeUpdate = useCallback(
-    (times: Array<TimeSelection>) => {
+    (times: Array<TimeSlot>) => {
       if (!user) {
         return;
       }
@@ -86,21 +61,24 @@ export function EventDetailView({
     [user, update]
   );
 
-  const maxParticipants = useMemo(() => {
-    if (!root?.availables) return 0;
+  const participantCounts = useMemo(() => {
+    if (!root?.availables) return new Map<string, number>();
 
-    const participantCounts = new Map<string, number>();
+    const counts = new Map<string, number>();
     Object.values(root.availables).forEach((selections) => {
       selections.forEach((selection) => {
         const key = `${selection.date}_${selection.time}`;
-        participantCounts.set(key, (participantCounts.get(key) || 0) + 1);
+        counts.set(key, (counts.get(key) || 0) + 1);
       });
     });
+    return counts;
+  }, [root?.availables]);
 
+  const maxParticipants = useMemo(() => {
     return participantCounts.size > 0
       ? Math.max(...participantCounts.values())
       : 0;
-  }, [root?.availables]);
+  }, [participantCounts]);
 
   const legendItems = useMemo(() => {
     if (maxParticipants === 0) return { items: [], count: 0 };
@@ -117,7 +95,10 @@ export function EventDetailView({
   return (
     <div className="space-y-8 w-full max-w-4xl mx-auto p-4">
       {loading && (
-        <div className="flex flex-col items-center justify-center min-h-[300px]">
+        <div
+          className="flex flex-col items-center justify-center min-h-[300px]"
+          aria-live="polite"
+        >
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
           <p className="mt-4 text-sm text-muted-foreground">Loading Event...</p>
         </div>
@@ -125,6 +106,12 @@ export function EventDetailView({
       {error && (
         <div className="p-4 border border-destructive/50 rounded-md bg-destructive/10 text-destructive">
           <p className="text-center">Error: {error.message}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-4 px-4 py-2 bg-destructive text-white rounded-md"
+          >
+            Retry
+          </button>
         </div>
       )}
       {!loading && !error && !root?.selectedDates && (

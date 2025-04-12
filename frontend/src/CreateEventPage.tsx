@@ -21,7 +21,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { formatTo12Hour } from "./lib/times";
 
 const eventSchema = z
@@ -50,9 +50,13 @@ const timeOptions = Array.from({ length: 24 }, (_, i) => {
   return `${hour}:00`;
 });
 
-export function CreateEventView() {
+export function CreateEventPage() {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    document.title = `SyncUp - Let's Sync Up!`;
+  }, []);
 
   const form = useForm<z.infer<typeof eventSchema>>({
     resolver: zodResolver(eventSchema),

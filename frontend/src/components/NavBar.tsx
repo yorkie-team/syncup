@@ -1,8 +1,8 @@
-import { toast } from "sonner";
 import { Link, useLocation } from "react-router-dom";
-import { Button } from "./components/ui/button";
+import { toast } from "sonner";
 import { CalendarIcon, ClockIcon } from "lucide-react";
-import { Event } from "./EventDetailView";
+import { Event } from "@/types/types";
+import { Button } from "@/components/ui/button";
 
 export function Navbar({ eventData }: { eventData?: Event }) {
   const location = useLocation();
