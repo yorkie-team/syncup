@@ -26,11 +26,12 @@ export function EventDetailPage({
     }) ||
     undefined;
 
-  const { root, update, loading, error } = useYorkieDoc<Event, User>(
+  const { root, update, presences, loading, error } = useYorkieDoc<Event, User>(
     import.meta.env.VITE_YORKIE_API_KEY,
     key!,
     { initialRoot }
   );
+
   const user = useFetchUser();
 
   useEffect(() => {
@@ -38,6 +39,10 @@ export function EventDetailPage({
       onEventLoad?.(root);
     }
   }, [root, loading, error]);
+
+  const onlineUsersCount = useMemo(() => {
+    return Object.keys(presences).length;
+  }, [presences]);
 
   useEffect(() => {
     if (!root || !root.name) {
@@ -196,6 +201,9 @@ export function EventDetailPage({
                   count={legendItems.count}
                   items={legendItems.items}
                 />
+              </div>
+              <div className="mt-4 text-center text-sm text-gray-500">
+                <span>{onlineUsersCount} user(s) online</span>
               </div>
             </div>
           </div>
