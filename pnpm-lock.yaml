@@ -175,8 +175,8 @@ importers:
         specifier: ^4.1.3
         version: 4.1.3(vite@6.2.5(@types/node@22.14.0)(jiti@2.4.2)(lightningcss@1.29.2)(terser@5.39.0))
       '@yorkie-js/react':
-        specifier: ^0.6.6
-        version: 0.6.6(react@19.1.0)
+        specifier: ^0.6.7-rc1
+        version: 0.6.7-rc1(react@19.1.0)
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -2295,8 +2295,8 @@ packages:
   '@xtuc/long@4.2.2':
     resolution: {integrity: sha512-NuHqBY1PB/D8xU6s/thBgOAiAP7HOYDQ32+BFZILJ8ivkUkAHQnWfn6WhL79Owj1qmUnoN/YPhktdIoucipkAQ==}
 
-  '@yorkie-js/react@0.6.6':
-    resolution: {integrity: sha512-Sex05JvLi6jP5BKtaarZHHBL+TqFh3Spx+c0njZcY5jRWoM8hXXk9zFw0gOvFGWiJ8Uj842L6h8OyoDI/aJ1Gw==}
+  '@yorkie-js/react@0.6.7-rc1':
+    resolution: {integrity: sha512-M3jbeqPBerbIZ9/2n0rZurf9EyJc2i1wjORS9YUgY1k7gflUWeYPPgtIVYC9p2aseCEt7vnG29c6w5rcPaAtGQ==}
     peerDependencies:
       react: ^18 || ^19
 
@@ -6978,7 +6978,7 @@ snapshots:
 
   '@xtuc/long@4.2.2': {}
 
-  '@yorkie-js/react@0.6.6(react@19.1.0)':
+  '@yorkie-js/react@0.6.7-rc1(react@19.1.0)':
     dependencies:
       '@yorkie-js/sdk': 0.6.6
       react: 19.1.0

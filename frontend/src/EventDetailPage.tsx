@@ -26,13 +26,18 @@ export function EventDetailPage({
     }) ||
     undefined;
 
+  const user = useFetchUser();
+
   const { root, update, presences, loading, error } = useYorkieDoc<Event, User>(
     import.meta.env.VITE_YORKIE_API_KEY,
     key!,
-    { initialRoot }
+    {
+      initialRoot,
+      metadata: {
+        userID: user?.username || "",
+      },
+    }
   );
-
-  const user = useFetchUser();
 
   useEffect(() => {
     if (root && !loading && !error) {
