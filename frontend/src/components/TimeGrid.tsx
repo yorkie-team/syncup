@@ -1,3 +1,4 @@
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Table,
   TableBody,
@@ -6,28 +7,23 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { formatDate, formatTo12Hour } from "@/lib/times";
-import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "./ui/tooltip";
+} from "@/components/ui/tooltip";
+import { formatDate, formatTo12Hour } from "@/lib/times";
+import { TimeSlot } from "@/types/types";
 
 interface TimeGridProps {
   dates: Array<Date>;
   startTime: string;
   endTime: string;
-  initialSelections?: Array<TimeSelection>;
-  availables?: Record<string, Array<TimeSelection>>;
-  onTimeUpdate?: (times: Array<TimeSelection>) => void;
+  initialSelection?: Array<TimeSlot>;
+  availables?: Record<string, Array<TimeSlot>>;
+  onTimeUpdate?: (times: Array<TimeSlot>) => void;
   readonly?: boolean;
-}
-
-export interface TimeSelection {
-  date: string;
-  time: string;
 }
 
 /**
@@ -54,16 +50,15 @@ export const TimeGrid = ({
   dates,
   startTime,
   endTime,
-  initialSelections = [],
+  initialSelection = [],
   availables,
   onTimeUpdate,
   readonly = false,
 }: TimeGridProps) => {
-  const [currSelections, setCurrSelections] =
-    useState<TimeSelection[]>(initialSelections);
-  const [selections, setSelections] = useState<TimeSelection[]>([]);
-  const [isDragging, setIsDragging] = useState(false);
-  const [dragStart, setDragStart] = useState<TimeSelection | null>(null);
+  const [currSelection, setCurrSelection] =
+    useState<Array<TimeSlot>>(initialSelection);
+  const [selection, setSelection] = useState<Array<TimeSlot>>([]);
+  const [dragStart, setDragStart] = useState<TimeSlot | null>(null);
 
   const timeSlots = useMemo(
     () => genTimeSlots(startTime, endTime),
@@ -71,14 +66,13 @@ export const TimeGrid = ({
   );
 
   const handleMouseDown = useCallback((date: Date, time: string) => {
-    setIsDragging(true);
-    const selection = { date: date.toISOString(), time };
-    setDragStart(selection);
-    setCurrSelections([selection]);
+    const slot = { date: date.toISOString(), time };
+    setDragStart(slot);
+    setCurrSelection([slot]);
   }, []);
 
   const handleMouseEnter = (date: Date, time: string) => {
-    if (isDragging && dragStart) {
+    if (dragStart) {
       const startDate = new Date(
         Math.min(new Date(dragStart.date).getTime(), date.getTime())
       );
@@ -90,14 +84,14 @@ export const TimeGrid = ({
       const minTime = Math.min(startTimeNum, currentTimeNum);
       const maxTime = Math.max(startTimeNum, currentTimeNum);
 
-      const newSelections: TimeSelection[] = [];
+      const slots: Array<TimeSlot> = [];
 
       let currentDate = startDate;
       while (currentDate <= endDate) {
         for (const slot of timeSlots) {
           const timeNum = parseInt(slot.replace(":", ""));
           if (timeNum >= minTime && timeNum <= maxTime) {
-            newSelections.push({
+            slots.push({
               date: currentDate.toISOString(),
               time: slot,
             });
@@ -106,42 +100,40 @@ export const TimeGrid = ({
         currentDate = new Date(currentDate.setDate(currentDate.getDate() + 1));
       }
 
-      setCurrSelections(newSelections);
+      setCurrSelection(slots);
     }
   };
 
   const handleMouseUp = useCallback(() => {
-    setIsDragging(false);
     setDragStart(null);
-    const updatedSelections = toggleSelections(selections, currSelections);
-    setSelections(updatedSelections);
-    setCurrSelections([]);
-    onTimeUpdate?.(updatedSelections);
-  }, [selections, currSelections, onTimeUpdate]);
+    const updatedSelection = toggleSelection(selection, currSelection);
+    setSelection(updatedSelection);
+    setCurrSelection([]);
+    onTimeUpdate?.(updatedSelection);
+  }, [selection, currSelection, onTimeUpdate]);
 
-  const toggleSelections = (
-    prevSelections: TimeSelection[],
-    currSelections: TimeSelection[]
-  ): TimeSelection[] => {
+  const toggleSelection = (
+    prevSelection: Array<TimeSlot>,
+    currSelection: Array<TimeSlot>
+  ): Array<TimeSlot> => {
     const overlappedSelection = new Set<string>();
 
-    for (const selection of prevSelections) {
-      const key = `${selection.date}-${selection.time}`;
-      for (const currSelection of currSelections) {
-        const currKey = `${currSelection.date}-${currSelection.time}`;
+    for (const slot of prevSelection) {
+      const key = `${slot.date}-${slot.time}`;
+      for (const slot of currSelection) {
+        const currKey = `${slot.date}-${slot.time}`;
         if (key === currKey) {
           overlappedSelection.add(key);
         }
       }
     }
 
-    return prevSelections
+    return prevSelection
       .filter(
-        (selection) =>
-          !overlappedSelection.has(`${selection.date}-${selection.time}`)
+        (slots) => !overlappedSelection.has(`${slots.date}-${slots.time}`)
       )
       .concat(
-        currSelections.filter(
+        currSelection.filter(
           (currSelection) =>
             !overlappedSelection.has(
               `${currSelection.date}-${currSelection.time}`
@@ -154,11 +146,11 @@ export const TimeGrid = ({
     return (date: Date, time: string) => {
       if (!availables) return 0;
 
-      return Object.values(availables).reduce((count, selections) => {
+      return Object.values(availables).reduce((count, slots) => {
         return (
           count +
-          (selections.some(
-            (sel) => sel.date === date.toISOString() && sel.time === time
+          (slots.some(
+            (slot) => slot.date === date.toISOString() && slot.time === time
           )
             ? 1
             : 0)
@@ -170,14 +162,14 @@ export const TimeGrid = ({
   const getAvailableParticipants = (date: Date, time: string) => {
     if (!availables) return [];
 
-    const availableParticipants: string[] = [];
-    Object.entries(availables).forEach(([userId, selections]) => {
+    const availableParticipants: Array<string> = [];
+    Object.entries(availables).forEach(([userID, slots]) => {
       if (
-        selections.some(
-          (sel) => sel.date === date.toISOString() && sel.time === time
+        slots.some(
+          (slot) => slot.date === date.toISOString() && slot.time === time
         )
       ) {
-        availableParticipants.push(userId);
+        availableParticipants.push(userID);
       }
     });
 
@@ -188,9 +180,9 @@ export const TimeGrid = ({
     if (!availables) return 0;
 
     const participantCounts = new Map<string, number>();
-    Object.values(availables).forEach((selections) => {
-      selections.forEach((selection) => {
-        const key = `${selection.date}_${selection.time}`;
+    Object.values(availables).forEach((selection) => {
+      selection.forEach((slot) => {
+        const key = `${slot.date}_${slot.time}`;
         participantCounts.set(key, (participantCounts.get(key) || 0) + 1);
       });
     });
@@ -201,11 +193,11 @@ export const TimeGrid = ({
   }, [availables]);
 
   const isSelected = (date: Date, time: string) => {
-    const isCurrSelected = currSelections.some(
-      (sel) => sel.date === date.toISOString() && sel.time === time
+    const isCurrSelected = currSelection.some(
+      (slot) => slot.date === date.toISOString() && slot.time === time
     );
-    const isPrevSelected = selections.some(
-      (sel) => sel.date === date.toISOString() && sel.time === time
+    const isPrevSelected = selection.some(
+      (slot) => slot.date === date.toISOString() && slot.time === time
     );
     return (
       !(isCurrSelected && isPrevSelected) && (isCurrSelected || isPrevSelected)
@@ -214,7 +206,6 @@ export const TimeGrid = ({
 
   useEffect(() => {
     const handleGlobalMouseUp = () => {
-      setIsDragging(false);
       setDragStart(null);
     };
 

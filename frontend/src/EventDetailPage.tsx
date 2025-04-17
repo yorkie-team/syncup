@@ -26,7 +26,7 @@ export function EventDetailPage({
     }) ||
     undefined;
 
-  const user = useFetchUser();
+  const { user } = useFetchUser();
 
   const { root, update, presences, loading, error } = useYorkieDoc<Event, User>(
     import.meta.env.VITE_YORKIE_API_KEY,
@@ -75,9 +75,9 @@ export function EventDetailPage({
     if (!root?.availables) return new Map<string, number>();
 
     const counts = new Map<string, number>();
-    Object.values(root.availables).forEach((selections) => {
-      selections.forEach((selection) => {
-        const key = `${selection.date}_${selection.time}`;
+    Object.values(root.availables).forEach((slots) => {
+      slots.forEach((slot) => {
+        const key = `${slot.date}_${slot.time}`;
         counts.set(key, (counts.get(key) || 0) + 1);
       });
     });
@@ -146,7 +146,7 @@ export function EventDetailPage({
                       dates={root.selectedDates.map((date) => new Date(date))}
                       startTime={root.startTime}
                       endTime={root.endTime}
-                      initialSelections={root.availables[user.username]}
+                      initialSelection={root.availables[user.username]}
                       onTimeUpdate={handleTimeUpdate}
                     />
                   </div>
