@@ -4,7 +4,8 @@
   "private": true,
   "description": "A simple event management application",
   "scripts": {
-    "preinstall": "npx only-allow pnpm",
+    "dev": "concurrently \"pnpm frontend dev\" \"pnpm backend start\"",
+    "build": "concurrently \"pnpm frontend build\" \"pnpm backend build\"",
     "frontend": "pnpm --filter @syncup/frontend",
     "backend": "pnpm --filter @syncup/backend"
   },
@@ -15,6 +16,6 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "only-allow": "^1.2.1"
+    "concurrently": "^9.1.2"
   }
 }
