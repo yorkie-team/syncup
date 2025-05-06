@@ -9,24 +9,16 @@ import { LegendItems } from "./components/LegendItems";
 import { User, Event, TimeSlot } from "./types/types";
 import { useFetchUser } from "./hooks/useFetchUser";
 
-export function EventDetailPage({
+function EventDetail({
+  user,
+  initialRoot,
   onEventLoad,
 }: {
+  user?: User;
+  initialRoot?: Event;
   onEventLoad?: (event: Event) => void;
 }) {
   const { key } = useParams();
-  const formData = useLocation().state;
-  const initialRoot =
-    (formData && {
-      name: formData.name,
-      selectedDates: formData.selectedDates,
-      startTime: formData.startTime,
-      endTime: formData.endTime,
-      availables: {},
-    }) ||
-    undefined;
-
-  const { user } = useFetchUser();
 
   const { root, update, presences, loading, error } = useYorkieDoc<Event, User>(
     import.meta.env.VITE_YORKIE_API_KEY,
@@ -215,5 +207,44 @@ export function EventDetailPage({
         </div>
       )}
     </div>
+  );
+}
+
+export function EventDetailPage({
+  onEventLoad,
+}: {
+  onEventLoad?: (event: Event) => void;
+}) {
+  const formData = useLocation().state;
+  const initialRoot =
+    (formData && {
+      name: formData.name,
+      selectedDates: formData.selectedDates,
+      startTime: formData.startTime,
+      endTime: formData.endTime,
+      availables: {},
+    }) ||
+    undefined;
+
+  const { user, loading } = useFetchUser();
+
+  if (loading) {
+    return (
+      <div
+        className="flex flex-col items-center justify-center min-h-[300px]"
+        aria-live="polite"
+      >
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <p className="mt-4 text-sm text-muted-foreground">Loading user...</p>
+      </div>
+    );
+  }
+
+  return (
+    <EventDetail
+      user={user}
+      initialRoot={initialRoot}
+      onEventLoad={onEventLoad}
+    />
   );
 }

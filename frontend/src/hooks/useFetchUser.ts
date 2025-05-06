@@ -3,7 +3,7 @@ import { User } from "@/types/types";
 import { toast } from "sonner";
 
 export function useFetchUser() {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | undefined>(undefined);
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
@@ -20,11 +20,11 @@ export function useFetchUser() {
         if (res.ok) {
           setUser(await res.json());
         } else {
-          setUser(null);
+          setUser(undefined);
         }
       } catch (error) {
         toast.error("Failed to fetch user");
-        setUser(null);
+        setUser(undefined);
       } finally {
         setLoading(false);
       }

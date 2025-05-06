@@ -1,4 +1,5 @@
 # SyncUp
+
 "Let's Sync Up" – SyncUp is a lightweight event coordination app that helps you plan events and sync available time slots with others.
 
 ## ✨ Features
@@ -17,6 +18,9 @@
 
 https://github.com/user-attachments/assets/29d921fc-4514-4b20-917c-f4a03be7796b
 
-
 📆 Give SyncUp a try and let us know what you think!
 🧪 Feedback is super welcome!
+
+## ⚒️ Contributing
+
+We welcome contributions! If you have suggestions or improvements, please open an issue or submit a pull request.
