@@ -1,0 +1,18 @@
+--- Install Complete ---
+{{ .Release.Name }} successfully installed!
+
+SyncUp application has been deployed to the {{ .Values.syncup.namespace }} namespace.
+
+{{- if .Values.ingress.hosts.enabled }}
+Your application is available at: https://{{ .Values.ingress.hosts.apiHost }}
+{{- else }}
+To expose your service, you need to set up an Ingress or use port-forwarding:
+
+  kubectl port-forward service/{{ .Values.syncup.name }} -n {{ .Values.syncup.namespace }} {{ .Values.syncup.service.port }}:{{ .Values.syncup.service.port }}
+
+Then access the application at: http://localhost:{{ .Values.syncup.service.port }}
+{{- end }}
+
+To learn more about the release, try:
+  $ helm status {{ .Release.Name }}
+  $ helm get all {{ .Release.Name }}
