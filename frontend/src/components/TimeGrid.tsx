@@ -214,7 +214,7 @@ export const TimeGrid = ({
   }, []);
 
   return (
-    <div className="max-w-fit select-none">
+    <div className="max-w-fit overflow-x-auto select-none">
       <Table className="w-auto">
         <TableHeader>
           <TableRow className="w-auto">
