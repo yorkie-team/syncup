@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "syncup.fullname" . }}
+  namespace: {{ .Values.syncup.namespace }}
+  labels:
+    {{- include "syncup.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.syncup.service.type }}
+  ports:
+    - name: syncup-server
+      port: {{ .Values.syncup.service.port }}
+      targetPort: {{ .Values.syncup.service.targetPort }}
+      appProtocol: http
+  selector:
+    {{- include "syncup.selectorLabels" . | nindent 4 }}

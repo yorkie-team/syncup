@@ -1,0 +1,23 @@
+apiVersion: v2
+name: syncup
+description: A Helm chart for SyncUp - a collaborative meeting tool
+type: application
+icon: https://raw.githubusercontent.com/yorkie-team/yorkie-team.github.io/main/public/favicon-512x512.png
+maintainers:
+  - name: hackerwins
+    email: susukang98@gmail.com
+  - name: krapie
+    email: krapi0314@gmail.com
+
+sources:
+  - https://github.com/yorkie-team/syncup
+version: 0.1.0
+appVersion: "0.0.1"
+kubeVersion: ">=1.24.0-0"
+
+keywords:
+  - syncup
+  - yorkie
+  - collaboration
+  - meeting
+  - kubernetes
