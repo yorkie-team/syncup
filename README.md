@@ -24,3 +24,10 @@ https://github.com/user-attachments/assets/29d921fc-4514-4b20-917c-f4a03be7796b
 ## ⚒️ Contributing
 
 We welcome contributions! If you have suggestions or improvements, please open an issue or submit a pull request.
+
+## 📚 Documentation
+
+- [docs/design/](docs/design/README.md) — Architectural design documents
+- [docs/tasks/](docs/tasks/README.md) — Task tracking (active and archived)
+- [backend/](backend/README.md) — Backend service notes
+- [CLAUDE.md](CLAUDE.md) — Agent instructions for AI-assisted development
