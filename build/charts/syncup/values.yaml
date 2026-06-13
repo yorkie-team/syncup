@@ -1,0 +1,66 @@
+# Configuration for SyncUp application
+syncup:
+  name: syncup
+  namespace: syncup
+
+  # Deployment configuration
+  deployment:
+    replicaCount: 1
+    revisionHistoryLimit: 3
+    image:
+      repository: yorkieteam/syncup
+      tag: latest
+      pullPolicy: Always
+    resources: {}
+      # limits:
+      #   cpu: 100m
+      #   memory: 128Mi
+      # requests:
+      #   cpu: 100m
+      #   memory: 128Mi
+
+  # Service configuration
+  service:
+    type: NodePort
+    port: 3000
+    targetPort: 3000
+
+  # Environment variables
+  env:
+    frontendUrl: "https://syncup.yorkie.dev"
+    githubClientId: ""
+    githubClientSecret: ""
+    githubCallbackUrl: "https://syncup-api.yorkie.dev/auth/github/callback"
+    jwtSecret: ""
+
+# Configuration for ingress
+ingress:
+  ingressClassName: nginx
+  ## Set to alb if you are using AWS, NCP ALB
+  # ingressClassName: alb
+  
+  # Host configuration
+  hosts:
+    enabled: false
+    apiHost: "syncup-api.yorkie.dev"
+  
+  # AWS ALB configuration
+  awsAlb:
+    enabled: false
+    scheme: internet-facing
+    certArn: "arn:aws:acm:ap-northeast-2:123412341234:certificate/1234-1234-1234-1234-1234"
+    listenPorts: '[{"HTTPS": 443}]'
+    backendProtocol: HTTP
+    backendProtocolVersion: HTTP1
+    groupName: "api.yorkie.dev"
+    groupOrder: "3"
+  
+  # NCP ALB configuration
+  ncpAlb:
+    enabled: false
+    certNo: "1234"
+    healthcheckPath: "/healthz"
+  
+  # Nginx configuration
+  nginx:
+    enabled: true

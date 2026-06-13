@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "syncup.fullname" . }}
+  namespace: {{ .Values.syncup.namespace }}
+  labels:
+    {{- include "syncup.labels" . | nindent 4 }}
+    version: {{ .Chart.AppVersion | quote }}
+spec:
+  replicas: {{ .Values.syncup.deployment.replicaCount }}
+  revisionHistoryLimit: {{ .Values.syncup.deployment.revisionHistoryLimit }}
+  selector:
+    matchLabels:
+      {{- include "syncup.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "syncup.selectorLabels" . | nindent 8 }}
+        version: {{ .Chart.AppVersion | quote }}
+    spec:
+      containers:
+        - name: {{ include "syncup.name" . }}
+          image: "{{ .Values.syncup.deployment.image.repository }}:{{ .Values.syncup.deployment.image.tag }}"
+          imagePullPolicy: {{ .Values.syncup.deployment.image.pullPolicy }}
+          env:
+            - name: FRONTEND_URL
+              value: {{ .Values.syncup.env.frontendUrl | quote }}
+            - name: GITHUB_CLIENT_ID
+              value: {{ .Values.syncup.env.githubClientId | quote }}
+            - name: GITHUB_CLIENT_SECRET
+              value: {{ .Values.syncup.env.githubClientSecret | quote }}
+            - name: GITHUB_CALLBACK_URL
+              value: {{ .Values.syncup.env.githubCallbackUrl | quote }}
+            - name: JWT_SECRET
+              value: {{ .Values.syncup.env.jwtSecret | quote }}
+          ports:
+            - containerPort: {{ .Values.syncup.service.targetPort }}
+          resources:
+            {{- toYaml .Values.syncup.deployment.resources | nindent 12 }}
